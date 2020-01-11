@@ -18,7 +18,6 @@ class CreateSubscribesTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('subscribe_id');
             $table->timestamps();
-
             $table->foreign('user_id')->references('id')->on('users');
         });
     }
