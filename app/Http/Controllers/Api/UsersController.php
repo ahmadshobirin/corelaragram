@@ -41,13 +41,8 @@ class UsersController extends Controller
 
     public function logout(Request $request)
     {
-
-        $request->validate([
-            'token' => 'required'
-        ]);
-
         try {
-            JWTAuth::invalidate($request->token);
+            JWTAuth::invalidate($request->bearerToken());
             return response()->json([
                 'status' => true,
                 'message' => 'User logged out successfully'
