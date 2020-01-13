@@ -24,14 +24,14 @@ class UsersController extends Controller
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid Email or Password',
+                    'status'      => false,
+                    'description' => 'Invalid Email or Password',
                 ], 400);
             }
         } catch (JWTException $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'could not create token'
+                'status'      => false,
+                'description' => 'could not create token'
             ], 500);
         }
 
@@ -40,7 +40,7 @@ class UsersController extends Controller
 
         return (new UserResource($loginUser))->additional([
             'status' => [
-                'code' => 202,
+                'code'        => 202,
                 'description' => 'OK'
             ]
         ])->response()->setStatusCode(202);
@@ -51,14 +51,14 @@ class UsersController extends Controller
         try {
             JWTAuth::invalidate($request->bearerToken());
             return response()->json([
-                'status' => true,
-                'message' => 'User logged out successfully'
+                'status'      => true,
+                'description' => 'User logged out successfully'
             ]);
         } catch (JWTException $e) {
             return response()->json([
-                'status' => false,
-                'message' => 'Sorry, the user cannot be logged out',
-                'jwt' => $e
+                'status'        => false,
+                'description'   => 'Sorry, the user cannot be logged out',
+                'error message' => $e,
             ], 500);
         }
     }
@@ -66,60 +66,68 @@ class UsersController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|min:3|alpha_dash',
-            'email' => 'required|unique:users|email',
-            'password' => 'required|min:3'
+            'name'     => 'required|min   : 3|alpha_dash',
+            'email'    => 'required|unique: users|email',
+            'password' => 'required|min   : 3'
         ]);
 
         $newUser = User::create([
-            'name' => $request->name,
+            'name'     => $request->name,
             'username' => $request->name,
-            'email' => $request->email,
+            'email'    => $request->email,
             'password' => bcrypt($request->password),
         ]);
 
 
         if ($this->loginAfterSignUp) {
-            //     return $this->login($request);
             $token = JWTAuth::fromUser($newUser);
             $newUser['token'] = $token;
         }
 
-        return response()->json([
-            'status'   =>  true,
-            'message'  =>  $newUser
-        ], 200);
+        $loginUser = Auth::user();
+        $loginUser['token'] = $token;
+
+        return (new UserResource($newUser))->additional([
+            'status' => [
+                'code'        => 201,
+                'description' => 'User Created'
+            ]
+        ])->response()->setStatusCode(201);
     }
 
-    public function me()
+    public function me(Request $request)
     {
         try {
             if (!$user = JWTAuth::parseToken()->authenticate()) {
                 return response()->json([
-                    "status" => false,
-                    "message" => 'user_not_found'
+                    "status"      => false,
+                    "description" => 'user_not_found'
                 ], 404);
             }
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return response()->json([
-                "status" => false,
-                "message" => 'token_expired'
+                "status"      => false,
+                "description" => 'token_expired'
             ], $e->getStatusCode());
         } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return response()->json([
-                "status" => false,
-                "message" => 'token_invalid'
+                "status"      => false,
+                "description" => 'token_invalid'
             ], $e->getStatusCode());
         } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return response()->json([
-                "status" => false,
-                "message" => 'token_absent'
+                "status"      => false,
+                "description" => 'token_absent'
             ], $e->getStatusCode());
         }
 
-        return response()->json([
-            "status" => true,
-            "message" => $user,
-        ], 200);
+        $user['token'] = $request->bearerToken();
+
+        return (new UserResource($user))->additional([
+            'status' => [
+                'code'        => 200,
+                'description' => 'User Created'
+            ]
+        ])->response()->setStatusCode(200);
     }
 }
