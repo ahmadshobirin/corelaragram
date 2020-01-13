@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use Auth;
 use JWTAuth;
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -33,10 +35,15 @@ class UsersController extends Controller
             ], 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'token' => $token,
-        ]);
+        $loginUser = Auth::user();
+        $loginUser['token'] = $token;
+
+        return (new UserResource($loginUser))->additional([
+            'status' => [
+                'code' => 202,
+                'description' => 'OK'
+            ]
+        ])->response()->setStatusCode(202);
     }
 
     public function logout(Request $request)
