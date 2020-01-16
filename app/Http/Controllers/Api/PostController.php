@@ -5,15 +5,18 @@ namespace App\Http\Controllers\Api;
 use DB;
 use Auth;
 use File;
+use Response;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PostResource;
 use Intervention\Image\Facades\Image;
 
 
 class PostController extends Controller
 {
     private $path = 'uploads/posts';
+
 
     public function store(Request $request)
     {
@@ -22,38 +25,51 @@ class PostController extends Controller
             'caption' => 'string',
         ]);
 
-        // dd(File::exists($this->path));
         DB::beginTransaction();
 
         try {
 
-            // if(!File::exists($this->path)) //check directory exist or make
-            //     File::makeDirectory($this->path, 0777, true, true);
             $file = $request->file('file');
-            $newName  = time().'.'.$file->getClientOriginalExtension();
-            $newImage = Image::make($file)
-                        ->resize(1920,1080)
-                        ->save($this->path."/".$newName);
+            $newName  = time() . '.' . $file->getClientOriginalExtension();
+
+            Image::make($file)
+                ->resize(1920, 1080)
+                ->save($this->path . "/" . $newName);
 
             $request->merge([
                 'user_id' => Auth::user()->id,
                 'image' => "posts/$newName",
             ]);
 
-            Post::create($request->only([
-                'user_id','image','caption'
-            ]));
+            $post = Post::create($request->only(['user_id', 'image', 'caption']));
 
             DB::commit();
         } catch (\Throwable $th) {
+            DB::rollback();
             return $th;
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
+            DB::rollback();
             return $e;
         }
 
-        return response()->json([
-            'status'      => true,
-            'description' => 'post succes'
-        ]);
+        return (new PostResource($post))->additional([
+            'status' => [
+                'code'        => 200,
+                'description' => 'Post Created'
+            ]
+        ])->response()->setStatusCode(200);
+    }
+
+    public function displayImage($endfolder,$filename)
+    {
+        $path = public_path("uploads/$endfolder/$filename");
+
+        if (!File::exists($path)) abort(404);
+
+        $response = Response::make(File::get($path), 200);
+
+        $response->header("Content-Type", File::mimeType($path));
+
+        return $response;
     }
 }
