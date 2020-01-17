@@ -19,6 +19,7 @@ Route::group(['middleware' => 'jwt.verify'], function () {
     Route::get('posts','Api\PostController@index');
     Route::post('post','Api\PostController@store');
     Route::post('like','Api\PostController@like');
+    Route::post('comment','Api\PostController@comment');
 });
 
 // Route::middleware('auth:jwt')->get('/user', function (Request $request) {

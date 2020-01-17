@@ -11,6 +11,7 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
+use App\Models\Comment;
 use App\Models\Like;
 use Intervention\Image\Facades\Image;
 
@@ -119,5 +120,21 @@ class PostController extends Controller
                 ]
             ]);
         }
+    }
+
+    public function comment(Request $req)
+    {
+        Comment::create([
+            'user_id' => Auth::user()->id,
+            'post_id' => $req->post_id,
+            'comment' => $req->comment,
+        ]);
+
+        return response()->json([
+            'data' => [
+                'status'      => true,
+                'description' => 'user has commented this post'
+            ]
+        ]);
     }
 }
