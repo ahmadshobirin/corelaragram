@@ -11,6 +11,7 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
+use App\Models\Like;
 use Intervention\Image\Facades\Image;
 
 
@@ -86,5 +87,37 @@ class PostController extends Controller
         $response->header("Content-Type", File::mimeType($path));
 
         return $response;
+    }
+
+    public function like(Request $req)
+    {
+        $likeUser = Like::where('user_id',Auth::user()->id)
+                        ->where('post_id',$req->post_id)
+                        ->count();
+        if($likeUser <= 0){
+            Like::create([
+                'user_id' => Auth::user()->id,
+                'post_id' => $req->post_id,
+            ]);
+
+            return response()->json([
+                'data' => [
+                    'status'      => true,
+                    'description' => 'user was liked post'
+                ]
+            ]);
+        }else{
+
+            Like::where('user_id',Auth::user()->id)
+                        ->where('post_id',$req->post_id)
+                        ->delete();
+
+            return response()->json([
+                'data' => [
+                    'status'      => true,
+                    'description' => 'user was unlike post'
+                ]
+            ]);
+        }
     }
 }
