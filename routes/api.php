@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 
 Route::get('/',function(){
     return response()->json([
-        'status' => true,
+        'status'      => true,
         'description' => "Welcome to API Laragram "
     ]);
 });
@@ -15,6 +15,7 @@ Route::post('register', 'Api\UsersController@register');
 Route::group(['middleware' => 'jwt.verify'], function () {
     Route::get('logout', 'Api\UsersController@logout');
     Route::get('user', 'Api\UsersController@me');
+    Route::post('subscribe', 'Api\UsersController@subscribe');
 
     Route::get('posts','Api\PostController@index');
     Route::post('post','Api\PostController@store');

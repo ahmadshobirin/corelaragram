@@ -7,6 +7,7 @@ use JWTAuth;
 use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\Subscribe;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -66,9 +67,9 @@ class UsersController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => 'required|min   : 3|alpha_dash',
-            'email'    => 'required|unique: users|email',
-            'password' => 'required|min   : 3'
+            'name'     => 'required|min:3|alpha_dash',
+            'email'    => 'required|unique:users|email',
+            'password' => 'required|min:3'
         ]);
 
         $newUser = User::create([
@@ -126,8 +127,48 @@ class UsersController extends Controller
         return (new UserResource($user))->additional([
             'status' => [
                 'code'        => 200,
-                'description' => 'User Created'
+                'description' => 'OK'
             ]
         ])->response()->setStatusCode(200);
+    }
+
+    public function subscribe(Request $req)
+    {
+        if(Auth::user()->id == $req->subscribe_id){
+            return response()->json([
+                'data' => [
+                    'status'      => false,
+                    'description' => "can't subscribe"
+                ]
+            ]);
+        }
+
+        $subscribe = Subscribe::where('user_id',Auth::user()->id)
+                    ->where('subscribe_id',$req->subscribe_id)
+                    ->count();
+        if($subscribe <= 0){
+            Subscribe::create([
+                'user_id'      => Auth::user()->id,
+                'subscribe_id' => $req->subscribe_id,
+            ]);
+
+            return response()->json([
+                'data' => [
+                    'status'      => true,
+                    'description' => 'user was subscribe'
+                ]
+            ]);
+        }else{
+            Subscribe::where('user_id',Auth::user()->id)
+                    ->where('subscribe_id',$req->subscribe_id)
+                    ->delete();
+
+            return response()->json([
+                'data' => [
+                    'status'      => true,
+                    'description' => 'user was unsubscribe'
+                ]
+            ]);
+        }
     }
 }

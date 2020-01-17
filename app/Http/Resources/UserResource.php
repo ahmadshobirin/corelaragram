@@ -17,9 +17,14 @@ class UserResource extends JsonResource
         return [
             'id'     => $this->id,
             'name'   => ucfirst($this->name),
-            'email'  => $this->id,
+            'email'  => $this->email,
             'joined' => $this->created_at->diffForHumans(),
-            'token'  => ($this->token != null) ? $this->token : ''
+            'photo'  => ($this->token != null )
+                        ? '-'
+                        : route('image.displayImage', explode('/', $this->photo)),
+            'follow'    => $this->follow(),
+            'followers' => $this->followers(),
+            'token'     => $this->token,
         ];
     }
 }
