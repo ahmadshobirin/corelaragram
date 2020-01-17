@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use DB;
 use Auth;
 use File;
+use JWTAuth;
 use Response;
 use App\Models\Post;
 use Illuminate\Http\Request;
@@ -15,8 +16,22 @@ use Intervention\Image\Facades\Image;
 
 class PostController extends Controller
 {
-    private $path = 'uploads/posts';
+    protected $path = 'uploads/posts';
 
+    public function index(Request $request)
+    {
+        $posts = Post::where('user_id',Auth::user()->id)->get();
+
+        return PostResource::collection($posts)
+            ->additional([
+                'status' => [
+                    'code'        => 200,
+                    'description' => 'OK'
+                ]
+            ])
+            ->response()
+            ->setStatusCode(200);
+    }
 
     public function store(Request $request)
     {

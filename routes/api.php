@@ -16,6 +16,7 @@ Route::group(['middleware' => 'jwt.verify'], function () {
     Route::get('logout', 'Api\UsersController@logout');
     Route::get('user', 'Api\UsersController@me');
 
+    Route::get('posts','Api\PostController@index');
     Route::post('post','Api\PostController@store');
 });
 

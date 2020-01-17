@@ -9,4 +9,9 @@ class Post extends Model
     protected $table = 'posts';
 
     protected $fillable = ['user_id', 'image', 'caption'];
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class,'user_id','id');
+    }
 }

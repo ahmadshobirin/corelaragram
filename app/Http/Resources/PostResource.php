@@ -16,7 +16,7 @@ class PostResource extends JsonResource
     {
         return [
             'id'      => $this->id,
-            'image'   => route('image.displayImage',$this->image),
+            'image'   => route('image.displayImage',explode('/',$this->image)),
             'caption' => $this->caption,
         ];
     }
