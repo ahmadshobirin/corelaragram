@@ -8,11 +8,11 @@ use File;
 use JWTAuth;
 use Response;
 use App\Models\Post;
+use App\Models\Like;
+use App\Models\Comment;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
-use App\Models\Comment;
-use App\Models\Like;
 use Intervention\Image\Facades\Image;
 
 
@@ -22,7 +22,9 @@ class PostController extends Controller
 
     public function index(Request $request)
     {
-        $posts = Post::where('user_id',Auth::user()->id)->get();
+        $posts = Post::where('user_id',Auth::user()->id)
+                ->with('likes','comments')
+                ->get();
 
         return PostResource::collection($posts)
             ->additional([

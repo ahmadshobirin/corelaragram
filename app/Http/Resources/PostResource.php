@@ -15,9 +15,14 @@ class PostResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id'      => $this->id,
-            'image'   => route('image.displayImage',explode('/',$this->image)),
-            'caption' => $this->caption,
+            'id'           => $this->id,
+            'image'        => route('image.displayImage',explode('/',$this->image)),
+            'caption'      => $this->caption,
+            'created_at'   => $this->created_at->format('d-m-Y H:i'),
+            'countlikes'   => count($this->likes),
+            'countcomment' => count($this->comments),
+            'likes'        => LikeResource::collection($this->whenLoaded('likes')),
+            'comments'     => CommentResource::collection($this->whenLoaded('comments')),
         ];
     }
 }
